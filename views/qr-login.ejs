@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+  </head>
+  <body>
+    <div class="container mt-2">
+        <img src="<%= loginUrl %>" />
+    </div>
+
+    <script>
+        const nonce = "<%= nonce %>"
+
+        const pollForQRStatus = setInterval(() => {
+            const response = await fetch("/")
+        }, 2000)
+    
+        console.log(nonce)
+    </script>
+  </body>
+</html>

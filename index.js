@@ -4,7 +4,12 @@ import QRCode from 'qrcode';
 import path from "path";
 import { fileURLToPath } from 'url';
 
+import dotenv from "dotenv";
+dotenv.config();
+
 const app = express();
+const port = process.env.PORT || 3001;
+
 app.use(express.json());
 app.use(express.urlencoded({
     extended: true
@@ -104,4 +109,4 @@ app.get("/auth/qr/status/:nonce", (req, res) => {
 
 });
 
-app.listen(3001, () => console.log("Server started at port: 3001"));
+app.listen(port, () => console.log(`Server started at port: ${port}`));

@@ -1,20 +1,38 @@
 import express from "express";
 import { v4 as uuidv4 } from 'uuid';
 import QRCode from 'qrcode';
+import path from "path";
+import { fileURLToPath } from 'url';
 
 const app = express();
-
 app.use(express.json());
+app.use(express.urlencoded({
+    extended: true
+}));
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static("public"));
 app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "./public/views/"));
 
 const transactions = {};
 const authenticatedKey = "AUTHENTICATED";
-const authServerUrl = "http://localhost:3000";
+const authServerUrl = "https://21cc-122-187-103-118.ngrok.io";
 
 app.get("/auth/qr", (req, res) => {
 
     const nonce = uuidv4();
-    QRCode.toDataURL(`${authServerUrl}/auth/qr/${nonce}`)
+    const transactionToken = uuidv4();
+    transactions[nonce] = {
+        status: "unauthorized",
+        transactionToken
+    };
+
+    console.log(`QR login request processed with nonce: ${nonce} and transactionToken: ${transactionToken}`);
+
+    QRCode.toDataURL(`${authServerUrl}/auth/qr/authorize/${nonce}`)
         .then(data => res.render("qr-login", {
             loginUrl: data,
             nonce
@@ -29,36 +47,53 @@ app.get("/auth/qr", (req, res) => {
         });
 });
 
+app.post("/auth/qr/login", (req, res) => {
+    console.log(req.body);
+    res.render("index");
+});
 
-app.post("/login/:nonce", (req, res) => {
-    const { username, password } = req.body;
+app.get("/auth/qr/authorize/:nonce", (req, res) => {
     const { nonce } = req.params;
+    res.render("login", {
+        nonce
+    });
+});
 
-    if (username === "admin" && password === "password") {
-        transactions[nonce] = authenticatedKey;
+
+app.post("/auth/authorize/qr", (req, res) => {
+
+    const { username, password, nonce } = req.body;
+
+    console.log(req.body);
+
+    if (username === "admin" && password === "password" && transactions[nonce]) {
+        transactions[nonce].status = authenticatedKey;
+        return res.render("authorized");
     }
 
-    res.status(200).json({
-        "message": "Login authorized"
+    res.status(400).json({
+        "error": "Bad_Request"
     });
+
 });
 
 //Return status of authorization to the corresponding nonce
 app.get("/auth/qr/status/:nonce", (req, res) => {
 
     const { nonce } = req.params;
-    const transactionStatus = transactions[nonce];
+    const transaction = transactions[nonce];
 
-    if (!transactionStatus) {
+    if (!transaction) {
         return res.status(400).json({
             error: "Bad request",
             error_description: "Invalid nonce value or no transactions found"
         });
     }
 
-    if (transactionStatus === authenticatedKey) {
+    if (transaction.status === authenticatedKey) {
         return res.status(200).json({
-            message: "authenticated"
+            status: "authorized",
+            transactionToken: transaction.transactionToken
         });
     }
 

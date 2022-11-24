@@ -1,17 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+  <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="/dist/output.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>QR login</title>
 </head>
-<body>
-    <form action="/auth/authorize/qr" method="post">
-        <input type="hidden" name="nonce" value="<%= nonce %>" />
-        <input type="text" name="username" placeholder="Username" />
-        <input type="password" name="password" placeholder="Password" />
-        <button type="submit" />
+  <body class="bg-background w-screen h-screen flex items-center justify-center">
+    <section class="flex flex-col items-center justify-center gap-4 max-w-[320px]">
+        <h1 class="text-xl font-semibold">QR Authenticator</h1>
+        <p class="text-center text-neutral-500">A sample app showcasing authentication flow by scanning QR on mobile. To know more <a class="underline" target="_blank" href="https://github.com/LugmanS/qr-login">visit project repo</a> .</p>
+        <div class="bg-white p-3 rounded-lg relative shadow-2xl">
+            <img src="<%= qrData %>" />
+            <div class="bg-primary text-white text-sm px-3 py-1 absolute rounded -bottom-3 left-1/2 transform -translate-x-1/2 w-max">Scan QR to login</div>
+        </div>
+    </section>
+    <form action="/", method="post" id="qr-login" class="hidden">
+      <input type="hidden" name="transactionToken" id="transaction-token" />
+      <input type="hidden" name="nonce" id="nonce" />
     </form>
+    <footer class="fixed bottom-0 py-6">
+        <h6 class="text-neutral-500">Made with ♥ by <a target="_blank" href="https://github.com/LugmanS" class="underline hover:text-primary duration-150">Lugman</a> </h6>
+    </footer>
+    <script>
+      const nonce = "<%= nonce %>"
+      const pollForQRStatus = setInterval( async () => {
+          try{
+              const response = await fetch(`/auth/qr/status/${nonce}`);
+              const data = await response.json();
+              if(data.status === "authorized"){
+                  const {status, transactionToken} = data;
+                  document.getElementById("transaction-token").value = transactionToken;
+                  document.getElementById("nonce").value = nonce;
+                  document.getElementById("qr-login").submit()
+                  clearInterval(pollForQRStatus)
+               }
+          }catch(err){
+              console.log("Error while polling for QR status:", err)
+          }
+      }, 4000)
+  
+  </script>
 </body>
 </html>

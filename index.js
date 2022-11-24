@@ -26,7 +26,7 @@ const transactions = {};
 const authenticatedKey = "AUTHENTICATED";
 const authServerUrl = "https://21cc-122-187-103-118.ngrok.io";
 
-app.get("/auth/qr", (req, res) => {
+app.get("/", (req, res) => {
 
     const nonce = uuidv4();
     const transactionToken = uuidv4();
@@ -38,8 +38,8 @@ app.get("/auth/qr", (req, res) => {
     console.log(`QR login request processed with nonce: ${nonce} and transactionToken: ${transactionToken}`);
 
     QRCode.toDataURL(`${authServerUrl}/auth/qr/authorize/${nonce}`)
-        .then(data => res.render("qr-login", {
-            loginUrl: data,
+        .then(data => res.render("login", {
+            qrData: data,
             nonce
         }))
         .catch(err => {
@@ -52,20 +52,20 @@ app.get("/auth/qr", (req, res) => {
         });
 });
 
-app.post("/auth/qr/login", (req, res) => {
+app.post("/", (req, res) => {
     console.log(req.body);
-    res.render("index");
+    res.render("login-success");
 });
 
 app.get("/auth/qr/authorize/:nonce", (req, res) => {
     const { nonce } = req.params;
-    res.render("login", {
+    res.render("authorize", {
         nonce
     });
 });
 
 
-app.post("/auth/authorize/qr", (req, res) => {
+app.post("/auth/qr/authorize", (req, res) => {
 
     const { username, password, nonce } = req.body;
 
@@ -94,19 +94,16 @@ app.get("/auth/qr/status/:nonce", (req, res) => {
             error_description: "Invalid nonce value or no transactions found"
         });
     }
-
     if (transaction.status === authenticatedKey) {
         return res.status(200).json({
             status: "authorized",
             transactionToken: transaction.transactionToken
         });
     }
-
     return res.status(200).json({
         error: "Authorization pending",
         error_description: "The authorization request is still pending as the end-user hasn't yet been authenticated."
     });
-
 });
 
 app.listen(port, () => console.log(`Server started at port: ${port}`));

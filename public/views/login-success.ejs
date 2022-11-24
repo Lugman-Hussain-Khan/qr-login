@@ -8,15 +8,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <title>Successfully authorized</title>
+    <title>Successfully logged in</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          disableForReducedMotion: true
+        });
+      }, 500);
+    </script>
 </head>
-<body class="bg-background flex items-center justify-center mt-10">
+<body class="bg-background w-screen h-screen flex items-center justify-center">
     <section class="flex flex-col items-center justify-center gap-4">
-        <h1 class="text-2xl font-semibold text-center">Successfully authorized login</h1>
+        <h1 class="text-2xl font-semibold">Hurray!, You have been successfully logged in</h1>
         <p><a class="underline" target="_blank" href="https://github.com/LugmanS/qr-login">Visit project repo</a></p>
     </section>
     <footer class="fixed bottom-0 py-6">
-        <h6 class="text-neutral-500">Made with ♥ by <a target="_blank" href="https://github.com/LugmanS" class="underline hover:text-primary duration-150">Lugman</a> </h6>
+        <h6 class="text-neutral-500">Made with ♥ by <a target="_blank" href="https://github.com/LugmanS" class="underline hover:text-primary duration-150">Lugman</a></h6>
     </footer>
 </body>
 </html>

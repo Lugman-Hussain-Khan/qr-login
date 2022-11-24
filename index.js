@@ -9,6 +9,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
+const host = process.env.HOST;
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -24,7 +25,6 @@ app.set("views", path.join(__dirname, "./public/views/"));
 
 const transactions = {};
 const authenticatedKey = "AUTHENTICATED";
-const authServerUrl = "https://21cc-122-187-103-118.ngrok.io";
 
 app.get("/", (req, res) => {
 
@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
 
     console.log(`QR login request processed with nonce: ${nonce} and transactionToken: ${transactionToken}`);
 
-    QRCode.toDataURL(`${authServerUrl}/auth/qr/authorize/${nonce}`)
+    QRCode.toDataURL(`${host}/auth/qr/authorize/${nonce}`)
         .then(data => res.render("login", {
             qrData: data,
             nonce

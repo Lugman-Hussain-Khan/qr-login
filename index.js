@@ -94,6 +94,7 @@ app.post("/auth/qr/authorize", (req, res) => {
         ...transaction,
         status: authenticatedKey
     };
+    console.log(transactions[nonce]);
     res.render("authorized");
 });
 

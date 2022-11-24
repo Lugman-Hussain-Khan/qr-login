@@ -36,7 +36,6 @@ app.get("/", (req, res) => {
         transactionToken,
         expiry: new Date(new Date().getTime() + 2 * 60000).getTime()
     };
-
     QRCode.toDataURL(`${host}/auth/qr/authorize/${nonce}`)
         .then(data => res.render("login", {
             qrData: data,
@@ -54,7 +53,6 @@ app.get("/", (req, res) => {
 
 //Validate transactionToken and render success
 app.post("/", (req, res) => {
-
     const { nonce, transactionToken } = req.body;
     const transaction = transactions[nonce];
     if (!transaction || !transaction.token === transactionToken) {
@@ -63,6 +61,7 @@ app.post("/", (req, res) => {
             error_description: "Invalid nonce or transaction token"
         });
     }
+    delete transactions[nonce];
     res.render("login-success");
 });
 
@@ -91,12 +90,15 @@ app.post("/auth/qr/authorize", (req, res) => {
             error_description: "Invalid or expired nonce"
         });
     }
+    transactions[nonce] = {
+        ...transaction,
+        status: authenticatedKey
+    };
     res.render("authorized");
 });
 
 //Return status of authorization to the corresponding nonce (Polled by the client)
 app.get("/auth/qr/status/:nonce", (req, res) => {
-
     const { nonce } = req.params;
     const transaction = transactions[nonce];
 

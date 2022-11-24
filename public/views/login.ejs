@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/dist/output.css">
+    <link rel="stylesheet" href="/assets/output.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -14,10 +14,14 @@
     <section class="flex flex-col items-center justify-center gap-4 max-w-[320px]">
         <h1 class="text-xl font-semibold">QR Authenticator</h1>
         <p class="text-center text-neutral-500">A sample app showcasing authentication flow by scanning QR on mobile. To know more <a class="underline" target="_blank" href="https://github.com/LugmanS/qr-login">visit project repo</a> .</p>
-        <div class="bg-white p-3 rounded-lg relative shadow-2xl">
+        <div class="bg-white p-3 rounded-lg relative shadow-2xl" id="qr">
             <img src="<%= qrData %>" />
             <div class="bg-primary text-white text-sm px-3 py-1 absolute rounded -bottom-3 left-1/2 transform -translate-x-1/2 w-max">Scan QR to login</div>
         </div>
+        <div class="hidden" id="timeout">
+          <h1 class="text-xl font-semibold text-center">Transaction timed out</h1>
+          <h1 class="text-center text-neutral-500">Please reload the page</h1>
+      </div>
     </section>
     <form action="/", method="post" id="qr-login" class="hidden">
       <input type="hidden" name="transactionToken" id="transaction-token" />
@@ -28,18 +32,29 @@
     </footer>
     <script>
       const nonce = "<%= nonce %>"
+
+      const handleTimeout = () => {
+        clearInterval(pollForQRStatus)
+        document.getElementById("qr").style.display = "none";
+        document.getElementById("timeout").style.display = "block";
+      }
+
       const pollForQRStatus = setInterval( async () => {
           try{
               const response = await fetch(`/auth/qr/status/${nonce}`);
-              const data = await response.json();
-              if(data.status === "authorized"){
-                  const {status, transactionToken} = data;
-                  document.getElementById("transaction-token").value = transactionToken;
+              if(response.status === 200){
+                const data = await response.json();
+                if(data.status === "authorized"){
+                  clearInterval(pollForQRStatus)
+                  document.getElementById("transaction-token").value = data.transactionToken;
                   document.getElementById("nonce").value = nonce;
                   document.getElementById("qr-login").submit()
-                  clearInterval(pollForQRStatus)
                }
+              }else{
+                handleTimeout();
+              }
           }catch(err){
+              handleTimeout();
               console.log("Error while polling for QR status:", err)
           }
       }, 4000)
